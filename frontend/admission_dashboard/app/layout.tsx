@@ -27,7 +27,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <main className=" w-full overflow-x-auto">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );

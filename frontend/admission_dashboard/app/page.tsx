@@ -1,8 +1,9 @@
 // app/page.js
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import jwt from "jsonwebtoken";
-import Navbar from "./components/Navbar.jsx";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import Sidebar from "./components/Sidebar";
+
 import Homepage from "./components/Homepage.jsx";
 import Footer from "./components/Footer.jsx";
 
@@ -16,7 +17,10 @@ export default async function HomePage() {
   }
 
   try {
-    const decoded = jwt.decode(token);
+    const decoded = jwt.decode(token) as JwtPayload | null;
+    if (!decoded || !decoded.exp) {
+      redirect("/login");
+    }
     if (decoded.exp * 1000 < Date.now()) {
       redirect("/login");
     }
@@ -24,13 +28,5 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-gray-50">
-        <Homepage />
-      </main>
-      <Footer />
-    </>
-  );
+  return <></>;
 }

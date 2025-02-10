@@ -1,11 +1,11 @@
-# routes/auth_routes.py
-from fastapi import APIRouter, Request, Response, HTTPException, Depends, Cookie  # Add Depends and Cookiefrom fastapi.responses import JSONResponse
+from fastapi import APIRouter, Request, Response, HTTPException, Depends, Cookie
 import logging
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from db import user_table, engine
-from auth import create_access_token, get_password_hash, verify_password,SECRET_KEY, ALGORITHM
+from auth import create_access_token, get_password_hash, verify_password, SECRET_KEY, ALGORITHM
 import jwt
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -129,12 +129,12 @@ async def login_user(request: Request, response: Response):
         
         # Set the token as an HttpOnly cookie with explicit parameters
         response.set_cookie(
-        key="token",
-        value=access_token,
-        httponly=True,
-        secure=False,
-        path="/",
-        samesite="lax"
+            key="token",
+            value=access_token,
+            httponly=True,
+            secure=False,
+            path="/",
+            samesite="lax"
         )
         
         logger.info("Login successful for email: %s", email)
@@ -147,9 +147,8 @@ async def login_user(request: Request, response: Response):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
 @router.get("/validate-token")
-async def validate_token(payload: dict = Depends(validate_token)):
+async def validate_token_endpoint(payload: dict = Depends(validate_token)):
     """Endpoint to check token validity."""
     return {"valid": True}
 
@@ -158,3 +157,23 @@ async def logout_user(response: Response):
     """Clear the JWT cookie."""
     response.delete_cookie(key="token")
     return {"message": "Logged out"}
+
+# New route to return the current user's name.
+@router.get("/user")
+async def get_user(payload: dict = Depends(validate_token)):
+    """
+    Returns the name of the user currently logged in.
+    The token is validated using the 'validate_token' dependency.
+    """
+    email = payload.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid token payload.")
+    
+    # Retrieve user info from the database.
+    with engine.connect() as connection:
+        user = connection.execute(
+            select(user_table).where(user_table.c.email == email)
+        ).mappings().fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
+        return {"name": user["name"]}

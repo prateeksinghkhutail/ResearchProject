@@ -8,6 +8,7 @@ from datetime import datetime
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy import and_
 import logging
+import numpy as np
 from db import (
     master_table,
     iteration_offer_table,
@@ -22,6 +23,10 @@ from db import (
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+def clean_nan_values(row: dict):
+    """Replaces NaN values with None (so they can be stored as NULL in MySQL)."""
+    return {key: (None if pd.isna(value) else value) for key, value in row.items()}
+
 @router.get("/data/{table_name}")
 async def read_data(table_name: str):
     try:
@@ -31,6 +36,7 @@ async def read_data(table_name: str):
         with engine.connect() as connection:
             result = connection.execute(table_obj.select())
             data = [jsonable_encoder(dict(row._mapping)) for row in result]
+            
         return JSONResponse(content={"data": data}, status_code=200)
     except Exception as e:
         logger.exception("Error reading data from table %s", table_name)
@@ -41,6 +47,8 @@ async def update_data(table_name: str, file: UploadFile):
     try:
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
+        
+        #df.replace({np.nan: None}, inplace=True)
         table_obj = metadata.tables.get(table_name)
         if table_obj is None:
             raise HTTPException(status_code=400, detail=f"Table {table_name} does not exist.")
@@ -50,8 +58,9 @@ async def update_data(table_name: str, file: UploadFile):
         
         with engine.begin() as connection:
             for _, row in df.iterrows():
+                row = clean_nan_values(dict(row))
                 primary_keys = [col.name for col in table_obj.primary_key]
-                stmt = insert(table_obj).values(row.to_dict())
+                stmt = insert(table_obj).values(row)
                 stmt = stmt.on_duplicate_key_update(
                     {key: row[key] for key in row.keys() if key not in primary_keys}
                 )
@@ -71,7 +80,7 @@ async def update_data(table_name: str, file: UploadFile):
                 )
                 latest_iteration_record = result.fetchone()
                 if latest_iteration_record is not None:
-                    latest_iteration = latest_iteration_record["iteration"]
+                    latest_iteration = latest_iteration_record[0]
                     for _, row in df.iterrows():
                         app_no = row["app_no"]
                         admission_paid = bool(row["admission_fees_status"])

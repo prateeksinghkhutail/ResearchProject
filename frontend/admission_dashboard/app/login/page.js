@@ -19,7 +19,7 @@ export default function LoginPage() {
     });
 
     if (res.ok) {
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } else {
       alert("Invalid credentials");
@@ -27,36 +27,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="font-bold text-4xl my-8">Admin Dashboard</div>
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
-        <input
-          type="email"
-          placeholder="Email"
-          className="mb-3 p-2 border rounded w-full"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="mb-3 p-2 border rounded w-full"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-        >
-          Login
-        </button>
-      </form>
+    <div className="relative  flex items-center justify-center min-h-screen bg-gray-100">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80"
+        style={{ backgroundImage: "url('/bitsimage.jpg')" }}
+      ></div>
+
+      <div className="relative z-10 bg-white p-8 rounded shadow-lg max-w-md w-full text-center">
+        <div className="font-bold text-4xl mb-4 text-black">
+          Admin Dashboard
+        </div>
+        <div className="font-bold text-xl text-gray-600 mb-6">
+          Welcome to BITS Admission Dashboard
+        </div>
+
+        <form onSubmit={handleLogin} className="w-full">
+          <h2 className="text-2xl font-bold mb-4">Login</h2>
+          <input
+            type="email"
+            placeholder="Email"
+            className="mb-3 p-2 border rounded w-full"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="mb-3 p-2 border rounded w-full"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          >
+            Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
