@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select, func
-from db import SessionLocal, master_table, iteration_offer_table, iteration_date_table
+from db import SessionLocal, master_table, iteration_offer_table, iteration_date_table,fees_paid_table
 from datetime import datetime
+from fastapi.encoders import jsonable_encoder
+
 
 router = APIRouter()
 
@@ -50,6 +52,44 @@ def get_stats():
             "latestIterationNumber": latest_iteration,
             "latestIterationDate": latest_iteration_date,
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+
+@router.get("/fees")
+def get_fees(query: str):
+    """
+    Returns the fees record for a given application number provided via the query parameter.
+    
+    Example:
+      GET http://localhost:8000/api/fees?query=APP001
+     
+    The endpoint queries the FEES_PAID table (with the following schema):
+      - app_no (primary key)
+      - admission_fees_amount
+      - admission_fees_status
+      - admission_fees_paid_date
+      - admission_fees_uploaded_by
+      - admission_fees_upload_date_time
+      - tution_fees_amount
+      - tution_fees_status
+      - tution_fees_paid_date
+      - tution_fees_uploaded_by
+      - tution_fees_upload_date_time
+     
+    and returns all these column values.
+    """
+    session = SessionLocal()
+    try:
+        stmt = select(fees_paid_table).where(fees_paid_table.c.app_no == query)
+        # Use .mappings() to get a dictionary-like result.
+        fees_record = session.execute(stmt).mappings().fetchone()
+        if not fees_record:
+            return {"message": f"No fees record found for application number: {query}"}
+        return jsonable_encoder(fees_record)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

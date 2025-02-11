@@ -22,7 +22,7 @@ export default function FeeDetails() {
       );
       if (res.ok) {
         const data = await res.json();
-        setFees(data);
+        setFees(Array.isArray(data) ? data : [data]); // Ensure data is always an array
       }
     } catch (error) {
       console.error("Failed to fetch fee details", error);
@@ -63,40 +63,84 @@ export default function FeeDetails() {
         <p className="text-center text-red-600">No fee details found</p>
       )}
       {!loading && fees.length > 0 && (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <table className="w-full border-collapse border border-gray-300">
+        <div className="bg-white shadow-md rounded-lg p-6 overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-200">
                 <th className="border border-gray-300 p-2">
                   Application Number
                 </th>
-                <th className="border border-gray-300 p-2">Iteration Number</th>
-                <th className="border border-gray-300 p-2">Scholarship</th>
                 <th className="border border-gray-300 p-2">
-                  Admission Fees Amt.
+                  Admission Fees Amount
                 </th>
                 <th className="border border-gray-300 p-2">
-                  Tuition Fees Amt.
+                  Admission Fees Status
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Admission Fees Paid Date
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Admission Fees Uploaded By
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Admission Fees Upload Date
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Tuition Fees Amount
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Tuition Fees Status
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Tuition Fees Paid Date
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Tuition Fees Uploaded By
+                </th>
+                <th className="border border-gray-300 p-2">
+                  Tuition Fees Upload Date
                 </th>
               </tr>
             </thead>
             <tbody>
               {fees.map((fee, index) => (
                 <tr key={index}>
+                  <td className="border border-gray-300 p-2">{fee.app_no}</td>
                   <td className="border border-gray-300 p-2">
-                    {fee.applicationNumber}
+                    {fee.admission_fees_amount}
                   </td>
                   <td className="border border-gray-300 p-2">
-                    {fee.iterationNumber}
+                    {fee.admission_fees_status ? "Paid" : "Unpaid"}
                   </td>
                   <td className="border border-gray-300 p-2">
-                    {fee.scholarship}
+                    {new Date(
+                      fee.admission_fees_paid_date
+                    ).toLocaleDateString()}
                   </td>
                   <td className="border border-gray-300 p-2">
-                    {fee.admissionFeesAmount}
+                    {fee.admission_fees_uploaded_by}
                   </td>
                   <td className="border border-gray-300 p-2">
-                    {fee.tuitionFeesAmount}
+                    {new Date(
+                      fee.admission_fees_upload_date_time
+                    ).toLocaleDateString()}
+                  </td>
+                  <td className="border border-gray-300 p-2">
+                    {fee.tution_fees_amount}
+                  </td>
+                  <td className="border border-gray-300 p-2">
+                    {fee.tution_fees_status ? "Paid" : "Unpaid"}
+                  </td>
+                  <td className="border border-gray-300 p-2">
+                    {new Date(fee.tution_fees_paid_date).toLocaleDateString()}
+                  </td>
+                  <td className="border border-gray-300 p-2">
+                    {fee.tution_fees_uploaded_by}
+                  </td>
+                  <td className="border border-gray-300 p-2">
+                    {new Date(
+                      fee.tution_fees_upload_date_time
+                    ).toLocaleDateString()}
                   </td>
                 </tr>
               ))}

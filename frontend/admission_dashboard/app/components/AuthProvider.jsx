@@ -9,6 +9,8 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
     const checkTokenValidity = async () => {
+      if (window.location.pathname === "/register") return;
+
       try {
         const res = await fetch("http://localhost:8000/api/validate-token", {
           method: "GET",
