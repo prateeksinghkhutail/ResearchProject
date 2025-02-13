@@ -1,0 +1,10 @@
+# Ignore node_modules and package-lock.json in frontend
+/frontend/node_modules
+/frontend/package-lock.json
+
+# Ignore macOS system file
+/frontend/.DS_STORE
+.DS_STORE
+
+# Ignore Python cache files
+/server/__pycache__/
