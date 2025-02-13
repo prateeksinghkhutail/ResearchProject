@@ -4,7 +4,6 @@
 
 # Ignore macOS system file
 /frontend/.DS_STORE
-.DS_STORE
 
 # Ignore Python cache files
 /server/__pycache__/
