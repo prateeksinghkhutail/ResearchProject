@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root:userpassword@localhost:3306/rp"  # Update with your DB details
+DATABASE_URL = "mysql+pymysql://root:sannidhya@localhost:3306/BITS"  # Update with your DB details
 
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
@@ -66,14 +66,17 @@ withdraws_table = Table(
 
 # LOGS_T table
 logs_table = Table(
-    "LOGS_T",
+    "LOGS_TABLE",
     metadata,
+    Column("file_name", String(20), nullable=False),
+    Column("category", String(20), nullable=False),
     Column("upload_date", DateTime, nullable=False),
     Column("uploaded_by", String(20), nullable=False),
-    Column("category", String(20), nullable=False),
     Column("remark", String(20), nullable=False),
-    Column("ip_addr", String(50), nullable=False),
+    Column("ip_address", String(50), nullable=False),
 )
+
+
 
 # USERS table for login/registration
 user_table = Table(

@@ -46,7 +46,7 @@ export default function RegisterPage() {
         setError(data.detail || "Registration failed");
       }
     } catch (err) {
-      setError("Failed to connect to the server");
+      setError("Failed to connect to the server" + err);
     }
   };
 

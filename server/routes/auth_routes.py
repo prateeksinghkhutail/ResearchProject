@@ -101,6 +101,9 @@ async def login_user(request: Request, response: Response):
     - email
     - password
     """
+    user_ip = request.client.host
+    
+    print("ip_address - ",user_ip)
     try:
         data = await request.json()
         email = data.get("email")
