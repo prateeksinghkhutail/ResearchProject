@@ -1,6 +1,8 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -10,7 +12,9 @@ export default function RegisterPage() {
   const [campus, setCampus] = useState("Pilani");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -21,60 +25,49 @@ export default function RegisterPage() {
       return;
     }
 
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:8000/api/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          name,
-          email,
-          contact,
-          campus,
-          password,
-          confirmPassword,
-        }),
+        body: JSON.stringify({ name, email, contact, campus, password ,confirmPassword}),
       });
-
+      
+      setLoading(false);
       const data = await res.json();
-
       if (res.ok) {
         router.push("/login");
       } else {
         setError(data.detail || "Registration failed");
       }
     } catch (err) {
-      setError("Failed to connect to the server" + err);
+      setLoading(false);
+      setError("Failed to connect to the server");
     }
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gray-100">
-      {/* Background Image */}
+    <div className="relative flex items-center justify-center min-h-screen bg-gray-50">
+      {/* Background Overlay */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/bitsimage.jpg')" }}
       ></div>
 
-      <div className="relative z-10 bg-white p-8 rounded shadow-lg max-w-lg w-full text-center">
-        <div className="font-bold text-4xl mb-4 text-black">
+      <div className="relative z-10 bg-white/70 backdrop-blur-xl p-10 rounded-2xl shadow-2xl max-w-lg w-full text-center border border-white/50">
+        <div className="font-extrabold text-4xl mb-4 text-gray-900 drop-shadow-lg">
           Admin Registration
         </div>
-        <div className="font-bold text-xl text-gray-600 mb-6">
-          Register for BITS Admission Dashboard
+        <div className="font-semibold text-lg text-gray-800 mb-6">
+          Register for BITS Admission Portal
         </div>
 
-        <form onSubmit={handleRegister} className="w-full">
-          <h2 className="text-2xl font-bold mb-4">Register</h2>
-          {error && (
-            <div className="mb-4 p-2 text-red-500 text-sm">{error}</div>
-          )}
+        <form onSubmit={handleRegister} className="w-full space-y-4">
           <input
             type="text"
             placeholder="Full Name"
-            className="mb-3 p-2 border rounded w-full"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none shadow-md bg-white text-gray-900"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -82,7 +75,7 @@ export default function RegisterPage() {
           <input
             type="email"
             placeholder="Email"
-            className="mb-3 p-2 border rounded w-full"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none shadow-md bg-white text-gray-900"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -91,13 +84,13 @@ export default function RegisterPage() {
             type="tel"
             pattern="[1-9]{1}[0-9]{9}"
             placeholder="Contact Number"
-            className="mb-3 p-2 border rounded w-full"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none shadow-md bg-white text-gray-900"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
             required
           />
           <select
-            className="mb-3 p-2 border rounded w-full bg-white"
+            className="p-3 border border-gray-300 rounded-lg w-full bg-white focus:ring-2 focus:ring-blue-500 outline-none shadow-md text-gray-900"
             value={campus}
             onChange={(e) => setCampus(e.target.value)}
             required
@@ -106,27 +99,38 @@ export default function RegisterPage() {
             <option value="Goa">Goa</option>
             <option value="Hyderabad">Hyderabad</option>
           </select>
-          <input
-            type="password"
-            placeholder="Password"
-            className="mb-3 p-2 border rounded w-full"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none shadow-md bg-white text-gray-900"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-3 flex items-center"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+            </button>
+          </div>
           <input
             type="password"
             placeholder="Confirm Password"
-            className="mb-3 p-2 border rounded w-full"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none shadow-md bg-white text-gray-900"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
+          {error && <div className="text-red-600 font-semibold">{error}</div>}
           <button
             type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all shadow-lg font-semibold disabled:bg-gray-400"
+            disabled={loading}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
       </div>

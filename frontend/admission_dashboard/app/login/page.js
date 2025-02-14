@@ -35,8 +35,8 @@ export default function LoginPage() {
     <div className="relative flex items-center justify-center min-h-screen bg-gray-50">
       {/* Background Overlay */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-95"
-        style={{ backgroundImage: "url('/bitsimage.jpg')", filter: "brightness(0.6)" }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat "
+        style={{ backgroundImage: "url('/bitsimage.jpg')"}}
       ></div>
 
       <div className="relative z-10 bg-white/70 backdrop-blur-xl p-10 rounded-2xl shadow-2xl max-w-md w-full text-center border border-white/50">

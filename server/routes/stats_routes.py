@@ -25,10 +25,16 @@ def get_stats():
         total_applications = session.execute(stmt_total).scalar() or 0
 
         # Count accepted students from ITERATION_OFFER where status is 'accept'.
+        """        stmt_accepted = (
+        select(func.count())
+        .select_from(iteration_offer_table)
+        .where(iteration_offer_table.c.status.in_(["accept",])) #if you want add , "accept & upgraded" in the list
+        )"""
+
         stmt_accepted = (
-            select(func.count())
-            .select_from(iteration_offer_table)
-            .where(iteration_offer_table.c.status == "accept")
+        select(func.count(func.distinct(iteration_offer_table.c.app_no)))
+        .select_from(iteration_offer_table)
+        .where(iteration_offer_table.c.status.like("%accept%"))
         )
         accepted_students = session.execute(stmt_accepted).scalar() or 0
 

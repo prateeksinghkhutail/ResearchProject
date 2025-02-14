@@ -46,6 +46,7 @@ async def register_user(request: Request, response: Response):
         
         # Validate all required fields
         required_fields = [name, email, contact, campus, password, confirm_password]
+        print(required_fields)
         if not all(required_fields):
             raise HTTPException(status_code=400, detail="All fields are required.")
         
