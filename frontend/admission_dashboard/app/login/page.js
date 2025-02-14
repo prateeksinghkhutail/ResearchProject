@@ -32,18 +32,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gray-100">
-      {/* Background Image */}
+    <div className="relative flex items-center justify-center min-h-screen bg-gray-50">
+      {/* Background Overlay */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90"
-        style={{ backgroundImage: "url('/bitsimage.jpg')" }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-95"
+        style={{ backgroundImage: "url('/bitsimage.jpg')", filter: "brightness(0.6)" }}
       ></div>
 
-      <div className="relative z-10 bg-white/40 backdrop-blur-md p-10 rounded-xl shadow-2xl max-w-md w-full text-center border border-white/30">
-        <div className="font-extrabold text-4xl mb-4 text-gray-800 drop-shadow-lg">
+      <div className="relative z-10 bg-white/70 backdrop-blur-xl p-10 rounded-2xl shadow-2xl max-w-md w-full text-center border border-white/50">
+        <div className="font-extrabold text-4xl mb-4 text-gray-900 drop-shadow-lg">
           Admin Dashboard
         </div>
-        <div className="font-semibold text-lg text-gray-700 mb-6">
+        <div className="font-semibold text-lg text-gray-800 mb-6">
           Welcome to BITS Admission Portal
         </div>
 
@@ -52,7 +52,7 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="Email"
-            className="p-3 border rounded-lg w-full focus:ring-2 focus:ring-blue-400 outline-none shadow-sm"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none shadow-md bg-white text-gray-900"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -61,7 +61,7 @@ export default function LoginPage() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className="p-3 border rounded-lg w-full focus:ring-2 focus:ring-blue-400 outline-none shadow-sm"
+              className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none shadow-md bg-white text-gray-900"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -69,14 +69,14 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-3 text-gray-700 hover:text-gray-900"
             >
               {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
             </button>
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-all shadow-md font-semibold disabled:bg-gray-400"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all shadow-lg font-semibold disabled:bg-gray-400"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
