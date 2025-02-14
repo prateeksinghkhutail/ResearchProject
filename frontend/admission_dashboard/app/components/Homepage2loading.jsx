@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 export default function Homepage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadType, setUploadType] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     totalApplications: 0,
     acceptedStudents: 0,
@@ -54,8 +53,6 @@ export default function Homepage() {
       return;
     }
 
-    setLoading(true);
-
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -75,8 +72,6 @@ export default function Homepage() {
       body: formData,
     });
 
-    setLoading(false);
-
     if (res.ok) {
       alert("File uploaded successfully");
       window.location.reload();
@@ -95,14 +90,14 @@ export default function Homepage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white shadow-md p-6 rounded-xl border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">Total Applications</h3>
-          <p className="text-3xl font-bold text-blue-600">{stats.totalApplications}</p>
+          <p className="text-4xl font-bold text-blue-600">{stats.totalApplications}</p>
           <h3 className="text-lg font-semibold text-gray-800 mt-4">Accepted Students</h3>
-          <p className="text-3xl font-bold text-green-600">{stats.acceptedStudents}</p>
+          <p className="text-4xl font-bold text-green-600">{stats.acceptedStudents}</p>
         </div>
 
         <div className="bg-white shadow-md p-6 rounded-xl border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">Current Iteration Stats</h3>
-          <p className="text-2xl font-bold text-gray-700">{stats.iterationNumber}</p>
+          <p className="text-3xl font-bold text-gray-700">{stats.iterationNumber}</p>
           <h3 className="text-lg font-semibold text-gray-800 mt-4">Iteration Date</h3>
           <p className="text-2xl font-bold text-gray-700">{stats.iterationDate}</p>
         </div>
@@ -111,15 +106,22 @@ export default function Homepage() {
       <div className="bg-white shadow-md p-6 rounded-xl border border-gray-200 mt-8 text-center">
         <h3 className="text-lg font-semibold text-gray-800">Upload CSV Files</h3>
         <div className="flex flex-wrap justify-center gap-6 mt-6">
-          {["master", "iteration", "fees", "withdraw"].map((type) => (
+          {[
+            { type: "master", label: "Master File" },
+            { type: "iteration", label: "Iteration File" },
+            { type: "fees", label: "Fee Detail File" },
+            { type: "withdraw", label: "Withdraw File" },
+          ].map(({ type, label }) => (
             <button
               key={type}
-              className={`px-6 py-2.5 text-base rounded-lg transition-colors font-medium shadow-md ${
-                uploadType === type ? "bg-green-600 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+              className={`px-4 py-2 text-lg rounded-lg transition-colors font-medium shadow-md ${
+                uploadType === type
+                  ? "bg-green-600 text-white"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
               }`}
               onClick={() => handleUpload(type)}
             >
-              Upload {type.charAt(0).toUpperCase() + type.slice(1)} File
+              Upload {label}
             </button>
           ))}
         </div>
@@ -131,12 +133,10 @@ export default function Homepage() {
               onChange={handleFileChange}
             />
             <button
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-base font-medium flex items-center justify-center"
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-lg font-medium"
               onClick={submitFile}
-              disabled={loading}
             >
-              {loading ? <span className="animate-spin border-4 border-white border-t-transparent rounded-full w-5 h-5 mr-2"></span> : null}
-              {loading ? "Uploading..." : "Submit File"}
+              Submit File
             </button>
           </div>
         )}
