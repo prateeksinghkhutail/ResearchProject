@@ -34,10 +34,10 @@ def get_stats():
         stmt_accepted = (
         select(func.count(func.distinct(iteration_offer_table.c.app_no)))
         .select_from(iteration_offer_table)
-        .where(iteration_offer_table.c.status.like("%accept%"))
+        .where(iteration_offer_table.c.status.like("%accept%"))#need correction 
         )
         accepted_students = session.execute(stmt_accepted).scalar() or 0
-
+        
         # Retrieve the latest iteration record (ordered by date descending).
         stmt_latest = (
             select(iteration_date_table)
@@ -297,7 +297,7 @@ async def upload_withdraw_csv(file: UploadFile = File(...)):
             # Update iteration offer status to 'withdrawls'
             stmt_update = update(iteration_offer_table).where(
                 iteration_offer_table.c.app_no == app_no
-            ).values(status="withdrawls")
+            ).values(status="withdraw")
             session.execute(stmt_update)
 
             # Insert withdrawal record
@@ -399,7 +399,7 @@ def withdraw_student(request: dict):
                 (iteration_offer_table.c.app_no == app_no) &
                 (iteration_offer_table.c.itr_no == latest_iteration)
             )
-            .values(status="withdrawls")
+            .values(status="withdraw")
         )
         session.execute(stmt_update)
 

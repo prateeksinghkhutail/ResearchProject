@@ -179,7 +179,7 @@ async def update_data(table_name: str, file: UploadFile):
                         ).values(status=new_status)
                         connection.execute(update_stmt)
 
-
+        
         return JSONResponse(content={"message": f"Data updated successfully in {table_name}!"}, status_code=200)
     except Exception as e:
         logger.exception("Error updating data for table %s", table_name)
