@@ -1,3 +1,4 @@
+// components/IterationDetails.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,9 +8,7 @@ export default function IterationDetails() {
   const [iterationCount, setIterationCount] = useState(0);
   const [selectedIteration, setSelectedIteration] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Fetch iteration count on component mount
   useEffect(() => {
     const fetchIterationCount = async () => {
       try {
@@ -20,22 +19,16 @@ export default function IterationDetails() {
         if (res.ok) {
           const data = await res.json();
           setIterationCount(data.count);
-        } else {
-          throw new Error("Failed to fetch iteration count");
         }
       } catch (error) {
-        console.error(error);
-        setError("Unable to load iteration count.");
+        console.error("Failed to fetch iteration count", error);
       }
     };
     fetchIterationCount();
   }, []);
 
-  // Function to fetch iteration details
   const fetchIterations = async (iterationNumber) => {
     setLoading(true);
-    setError("");
-
     try {
       const res = await fetch(
         `http://localhost:8000/api/iterations?iteration=${iterationNumber}`,
@@ -44,35 +37,14 @@ export default function IterationDetails() {
           credentials: "include",
         }
       );
-
       if (res.ok) {
         const data = await res.json();
-
-        // If no iterations found, show message
-        if (data.message) {
-          setIterations([]);
-          setError(data.message);
-        } else {
-          // Ensure Withdrawals are displayed properly
-          const updatedIterations = data.map((iteration) => ({
-            ...iteration,
-            status:
-              iteration.status === "withdrawls"
-                ? "Withdrawn"
-                : iteration.status,
-          }));
-
-          setIterations(updatedIterations);
-          setSelectedIteration(iterationNumber);
-        }
-      } else {
-        throw new Error("Failed to fetch iteration details");
+        setIterations(data);
+        setSelectedIteration(iterationNumber);
       }
     } catch (error) {
-      console.error(error);
-      setError("Unable to load iteration details.");
+      console.error("Failed to fetch iteration details", error);
     }
-
     setLoading(false);
   };
 
@@ -86,13 +58,9 @@ export default function IterationDetails() {
           Welcome to BITS Admission Portal Dashboard
         </p>
       </div>
-
       <h1 className="text-3xl font-bold mb-4">Iteration Details</h1>
-
-      {error && <p className="text-center text-red-600">{error}</p>}
-
       {iterationCount > 0 ? (
-        <div className="flex flex-wrap gap-2 overflow-x-auto mb-4 p-2">
+        <div className="flex flex-wrap gap-2 mb-4">
           {[...Array(iterationCount).keys()].map((i) => (
             <button
               key={i + 1}
@@ -112,15 +80,13 @@ export default function IterationDetails() {
           No iterations have been conducted yet.
         </p>
       )}
-
       {loading && (
         <p className="text-center text-gray-600">
           Loading iteration details...
         </p>
       )}
-
       {!loading && iterations.length > 0 && (
-        <div className="bg-white shadow-md rounded-lg p-6 overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-6">
           <table className="w-full border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-200">
@@ -136,21 +102,15 @@ export default function IterationDetails() {
               {iterations.map((iteration, index) => (
                 <tr key={index}>
                   <td className="border border-gray-300 p-2">
-                    {iteration.app_no}
+                    {iteration.applicationNumber}
                   </td>
                   <td className="border border-gray-300 p-2">
-                    {iteration.itr_no}
+                    {iteration.iterationNumber}
                   </td>
                   <td className="border border-gray-300 p-2">
                     {iteration.offer}
                   </td>
-                  <td
-                    className={`border border-gray-300 p-2 ${
-                      iteration.status === "Withdrawn"
-                        ? "text-red-600 font-bold"
-                        : ""
-                    }`}
-                  >
+                  <td className="border border-gray-300 p-2">
                     {iteration.status}
                   </td>
                 </tr>
