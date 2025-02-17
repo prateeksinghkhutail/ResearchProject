@@ -1,7 +1,6 @@
-// components/StudentDetails.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function StudentDetails() {
   const [students, setStudents] = useState([]);
@@ -22,7 +21,14 @@ export default function StudentDetails() {
       );
       if (res.ok) {
         const data = await res.json();
-        setStudents(data);
+        if (data.message) {
+          // If no student record is found
+          setStudents([]);
+        } else {
+          setStudents(Array.isArray(data) ? data : [data]);
+        }
+      } else {
+        console.error("Failed to fetch students", res);
       }
     } catch (error) {
       console.error("Failed to fetch students", error);
@@ -40,53 +46,52 @@ export default function StudentDetails() {
           Welcome to BITS Admission Portal Dashboard
         </p>
       </div>
-      <div className="flex flex-col w-full justify-center">
-        <h1 className="text-3xl font-bold mb-4">Student Details</h1>
-        <div className="flex items-center mb-4 ml-4">
-          <input
-            type="text"
-            placeholder="Enter Student ID or Name"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-2 border border-gray-300 rounded w-96"
-          />
-          <button
-            className="ml-2 w-32 bg-blue-600 text-white px-4 py-2 rounded"
-            onClick={fetchStudents}
-          >
-            Search
-          </button>
-        </div>
+
+      <h1 className="text-3xl font-bold mb-4">Student Details</h1>
+      <div className="flex items-center mb-4">
+        <input
+          type="text"
+          placeholder="Enter Student ID or Name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-64"
+        />
+        <button
+          className="ml-2 bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={fetchStudents}
+        >
+          Search
+        </button>
       </div>
 
       {loading && (
         <p className="text-center text-gray-600">Loading student details...</p>
       )}
       {searched && students.length === 0 && !loading && (
-        <p className="text-center text-red-600">No students found</p>
+        <p className="text-center text-red-600">No student found</p>
       )}
       {!loading && students.length > 0 && (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <table className="w-full border-collapse border border-gray-300">
+        <div className="bg-white shadow-md rounded-lg p-6 overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-200">
                 <th className="border border-gray-300 p-2">Student ID</th>
                 <th className="border border-gray-300 p-2">Name</th>
-                <th className="border border-gray-300 p-2">Course</th>
+                <th className="border border-gray-300 p-2">Iteration No</th>
+                <th className="border border-gray-300 p-2">Offer</th>
+                <th className="border border-gray-300 p-2">Scholarship</th>
                 <th className="border border-gray-300 p-2">Status</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((student) => (
-                <tr key={student.id}>
-                  <td className="border border-gray-300 p-2">{student.id}</td>
+              {students.map((student, index) => (
+                <tr key={`${student.app_no}-${student.itr_no || index}`}>
+                  <td className="border border-gray-300 p-2">{student.app_no}</td>
                   <td className="border border-gray-300 p-2">{student.name}</td>
-                  <td className="border border-gray-300 p-2">
-                    {student.course}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {student.status}
-                  </td>
+                  <td className="border border-gray-300 p-2">{student.itr_no}</td>
+                  <td className="border border-gray-300 p-2">{student.offer}</td>
+                  <td className="border border-gray-300 p-2">{student.scholarship}</td>
+                  <td className="border border-gray-300 p-2">{student.status}</td>
                 </tr>
               ))}
             </tbody>
