@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root:sannidhya@localhost:3306/BITS"  # Update with your DB details
+DATABASE_URL = "mysql+pymysql://root:userpassword@localhost:3306/rp"  # Update with your DB details
 
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
