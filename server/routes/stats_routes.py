@@ -1,11 +1,19 @@
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File
-from sqlalchemy import select, func, update, insert
-from db import SessionLocal, master_table, iteration_offer_table, iteration_date_table,fees_paid_table, withdraws_table
-from datetime import datetime
-from fastapi.encoders import jsonable_encoder
-import pandas as pd
 import io
+from datetime import datetime
 
+import pandas as pd
+from db import (
+    SessionLocal,
+    fees_paid_table,
+    iteration_date_table,
+    iteration_offer_table,
+    master_table,
+    withdraws_table,
+)
+
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import and_, func, insert, select, update
 
 router = APIRouter()
 
@@ -25,24 +33,32 @@ def get_stats():
         total_applications = session.execute(stmt_total).scalar() or 0
 
         # Count accepted students from ITERATION_OFFER where status is 'accept'.
-        """        stmt_accepted = (
-        select(func.count())
-        .select_from(iteration_offer_table)
-        .where(iteration_offer_table.c.status.in_(["accept",])) #if you want add , "accept & upgraded" in the list
-        )"""
+        latest_itr_subquery = (
+            select(
+                iteration_offer_table.c.app_no,
+                func.max(iteration_offer_table.c.itr_no).label("latest_itr"),
+            )
+            .group_by(iteration_offer_table.c.app_no)
+            .subquery()
+        )
 
         stmt_accepted = (
-        select(func.count(func.distinct(iteration_offer_table.c.app_no)))
-        .select_from(iteration_offer_table)
-        .where(iteration_offer_table.c.status.like("%accept%"))#need correction 
+            select(func.count(func.distinct(iteration_offer_table.c.app_no)))
+            .select_from(
+                iteration_offer_table.join(
+                    latest_itr_subquery,
+                    and_(
+                        iteration_offer_table.c.app_no == latest_itr_subquery.c.app_no,
+                        iteration_offer_table.c.itr_no == latest_itr_subquery.c.latest_itr,
+            ),))
+            .where(iteration_offer_table.c.status.like("%accept%"))
         )
         accepted_students = session.execute(stmt_accepted).scalar() or 0
-        
+        #print(accepted_students)
+
         # Retrieve the latest iteration record (ordered by date descending).
         stmt_latest = (
-            select(iteration_date_table)
-            .order_by(iteration_date_table.c.date.desc())
-            .limit(1)
+            select(iteration_date_table).order_by(iteration_date_table.c.date.desc()).limit(1)
         )
         latest_record = session.execute(stmt_latest).fetchone()
 
@@ -66,15 +82,14 @@ def get_stats():
         session.close()
 
 
-
 @router.get("/fees")
 def get_fees(query: str):
     """
     Returns the fees record for a given application number provided via the query parameter.
-    
+
     Example:
       GET http://localhost:8000/api/fees?query=APP001
-     
+
     The endpoint queries the FEES_PAID table (with the following schema):
       - app_no (primary key)
       - admission_fees_amount
@@ -87,7 +102,7 @@ def get_fees(query: str):
       - tution_fees_paid_date
       - tution_fees_uploaded_by
       - tution_fees_upload_date_time
-     
+
     and returns all these column values.
     """
     session = SessionLocal()
@@ -104,17 +119,14 @@ def get_fees(query: str):
         session.close()
 
 
-##############        
-
 def num_there(s):
     return any(i.isdigit() for i in s)
-
 
 
 @router.get("/students")
 def get_student(query: str):
     """
-    Returns the student record along with iteration offer details for a given application number or student name 
+    Returns the student record along with iteration offer details for a given application number or student name
     provided via the query parameter.
 
     Example:
@@ -124,7 +136,7 @@ def get_student(query: str):
     The endpoint queries the master_table and iteration_offer_table:
       - master_table (app_no, name)
       - iteration_offer_table (app_no, itr_no, offer, scholarship, status)
-      
+
     and returns the corresponding student data.
     """
     session = SessionLocal()
@@ -142,7 +154,9 @@ def get_student(query: str):
                     iteration_offer_table.c.status,
                 )
                 .select_from(master_table)
-                .join(iteration_offer_table, master_table.c.app_no == iteration_offer_table.c.app_no)
+                .join(
+                    iteration_offer_table, master_table.c.app_no == iteration_offer_table.c.app_no
+                )
                 .where(master_table.c.app_no.ilike(f"%{query}%"))
             )
         else:
@@ -157,7 +171,9 @@ def get_student(query: str):
                     iteration_offer_table.c.status,
                 )
                 .select_from(master_table)
-                .join(iteration_offer_table, master_table.c.app_no == iteration_offer_table.c.app_no)
+                .join(
+                    iteration_offer_table, master_table.c.app_no == iteration_offer_table.c.app_no
+                )
                 .where(master_table.c.name.ilike(f"%{query}%"))
             )
 
@@ -178,7 +194,7 @@ def get_student(query: str):
 def get_iteration_details(iteration: int = Query(None, description="Iteration number")):
     """
     Fetches iteration details for a given iteration number.
-    
+
     Returns:
     - Application Number (app_no)
     - Iteration Number (itr_no)
@@ -195,7 +211,7 @@ def get_iteration_details(iteration: int = Query(None, description="Iteration nu
             iteration_offer_table.c.app_no,
             iteration_offer_table.c.itr_no,
             iteration_offer_table.c.offer,
-            iteration_offer_table.c.status
+            iteration_offer_table.c.status,
         ).where(iteration_offer_table.c.itr_no == iteration)
 
         result = session.execute(stmt).mappings().all()
@@ -222,49 +238,6 @@ def get_iteration_count():
     finally:
         session.close()
 
-# @router.post("/withdraw")
-# def withdraw_application(request: dict):
-#     """
-#     Handles the withdrawal of an application.
-#     - Expects a JSON body with `app_no` (Application Number).
-#     - Updates the `WITHDRAWS` table and marks the application as withdrawn.
-#     """
-#     session = SessionLocal()
-#     try:
-#         app_no = request.get("app_no")
-#         if not app_no:
-#             raise HTTPException(status_code=400, detail="Application Number is required.")
-
-#         # Check if the application exists
-#         stmt_check = select(master_table.c.app_no).where(master_table.c.app_no == app_no)
-#         exists = session.execute(stmt_check).scalar()
-
-#         if not exists:
-#             raise HTTPException(status_code=404, detail="Application not found.")
-
-#         # Insert withdrawal record
-#         stmt_insert = withdraws_table.insert().values(
-#             app_no=app_no,
-#             date=datetime.now(),
-#             uploaded_by="Admin",
-#             upload_date_time=datetime.now()
-#         )
-#         session.execute(stmt_insert)
-
-#         # Update iteration status to 'withdrawls'
-#         stmt_update = iteration_offer_table.update().where(
-#             iteration_offer_table.c.app_no == app_no
-#         ).values(status="withdrawls")
-#         session.execute(stmt_update)
-
-#         session.commit()
-#         return {"message": f"Application {app_no} withdrawn successfully."}
-
-#     except Exception as e:
-#         session.rollback()
-#         raise HTTPException(status_code=500, detail=str(e))
-#     finally:
-#         session.close()
 
 @router.post("/withdraw/upload")
 async def upload_withdraw_csv(file: UploadFile = File(...)):
@@ -284,20 +257,26 @@ async def upload_withdraw_csv(file: UploadFile = File(...)):
         if "app_no" not in df.columns:
             raise HTTPException(status_code=400, detail="CSV must contain 'app_no' column")
 
-        for _, row in df.iterrows():
-            app_no = row["app_no"]
+        for row in df.itertuples():
+            app_no = row.app_no
 
             # Check if the application exists in iteration offer table
-            stmt_check = select(iteration_offer_table.c.app_no).where(iteration_offer_table.c.app_no == app_no)
+            stmt_check = select(iteration_offer_table.c.app_no).where(
+                iteration_offer_table.c.app_no == app_no
+            )
             exists = session.execute(stmt_check).scalar()
 
             if not exists:
-                raise HTTPException(status_code=404, detail=f"Application {app_no} not found in iteration details.")
+                raise HTTPException(
+                    status_code=404, detail=f"Application {app_no} not found in iteration details."
+                )
 
             # Update iteration offer status to 'withdrawls'
-            stmt_update = update(iteration_offer_table).where(
-                iteration_offer_table.c.app_no == app_no
-            ).values(status="withdraw")
+            stmt_update = (
+                update(iteration_offer_table)
+                .where(iteration_offer_table.c.app_no == app_no)
+                .values(status="withdraw")
+            )
             session.execute(stmt_update)
 
             # Insert withdrawal record
@@ -305,7 +284,7 @@ async def upload_withdraw_csv(file: UploadFile = File(...)):
                 app_no=app_no,
                 date=datetime.now(),
                 uploaded_by="Admin",
-                upload_date_time=datetime.now()
+                upload_date_time=datetime.now(),
             )
             session.execute(stmt_insert)
 
@@ -319,51 +298,6 @@ async def upload_withdraw_csv(file: UploadFile = File(...)):
     finally:
         session.close()
 
-# @router.post("/withdraw/student")
-# def withdraw_student(request: dict):
-#     """
-#     Withdraw a specific student by application number.
-#     - Expects a JSON request: { "app_no": "APP12345" }
-#     - Updates the status in ITERATION_OFFER to 'withdrawls'.
-#     - Adds the student to WITHDRAWS table.
-#     """
-#     session = SessionLocal()
-#     try:
-#         app_no = request.get("app_no")
-#         if not app_no:
-#             raise HTTPException(status_code=400, detail="Application Number is required.")
-
-#         # Check if the application exists in iteration_offer_table
-#         stmt_check = select(iteration_offer_table.c.app_no).where(iteration_offer_table.c.app_no == app_no)
-#         exists = session.execute(stmt_check).scalar()
-
-#         if not exists:
-#             raise HTTPException(status_code=404, detail="Application not found.")
-
-#         # Update iteration offer status to 'withdrawls'
-#         stmt_update = update(iteration_offer_table).where(
-#             iteration_offer_table.c.app_no == app_no
-#         ).values(status="withdrawls")
-#         session.execute(stmt_update)
-
-#         # Insert into WITHDRAWS table
-#         stmt_insert = insert(withdraws_table).values(
-#             app_no=app_no,
-#             date=datetime.now(),
-#             uploaded_by="Admin",
-#             upload_date_time=datetime.now()
-#         )
-#         session.execute(stmt_insert)
-
-#         session.commit()
-#         return {"message": f"Application {app_no} successfully withdrawn."}
-
-#     except Exception as e:
-#         session.rollback()
-#         raise HTTPException(status_code=500, detail=str(e))
-
-#     finally:
-#         session.close()
 
 @router.post("/withdraw/student")
 def withdraw_student(request: dict):
@@ -396,8 +330,8 @@ def withdraw_student(request: dict):
         stmt_update = (
             update(iteration_offer_table)
             .where(
-                (iteration_offer_table.c.app_no == app_no) &
-                (iteration_offer_table.c.itr_no == latest_iteration)
+                (iteration_offer_table.c.app_no == app_no)
+                & (iteration_offer_table.c.itr_no == latest_iteration)
             )
             .values(status="withdraw")
         )
@@ -405,15 +339,14 @@ def withdraw_student(request: dict):
 
         # Insert withdrawal record
         stmt_insert = insert(withdraws_table).values(
-            app_no=app_no,
-            date=datetime.now(),
-            uploaded_by="Admin",
-            upload_date_time=datetime.now()
+            app_no=app_no, date=datetime.now(), uploaded_by="Admin", upload_date_time=datetime.now()
         )
         session.execute(stmt_insert)
 
         session.commit()
-        return {"message": f"Application {app_no} successfully withdrawn for iteration {latest_iteration}."}
+        return {
+            "message": f"Application {app_no} successfully withdrawn for iteration {latest_iteration}."
+        }
 
     except Exception as e:
         session.rollback()
