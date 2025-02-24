@@ -44,15 +44,22 @@ export default function Sidebar({ setActiveComponent, setIsSidebarCollapsed }) {
         {isCollapsed ? <Menu size={28} /> : <X size={28} />}
       </button>
 
-      {!isCollapsed && (
-        <div className="flex justify-center mb-6">
-          <img
-            src="/BITS_logo.png"
-            alt="BITS Logo"
-            className="w-24 h-24 rounded-full shadow-md border-4 border-white"
-          />
-        </div>
-      )}
+      <div className="flex justify-center mb-6">
+  { !isCollapsed ? (
+    <img
+      src="/BITS_logo.png"
+      alt="BITS Logo"
+      className="w-24 h-24 rounded-full shadow-none border-none transform transition-all duration-300 hover:scale-105"
+    />
+  ) : (
+    <img
+      src="/BITS_logo.png"
+      alt="BITS Logo"
+      className="w-9 h-9 rounded-full shadow-none border-none"
+    />
+  )}
+</div>
+
 
       <nav className="flex-1">
         <ul className="text-lg">
