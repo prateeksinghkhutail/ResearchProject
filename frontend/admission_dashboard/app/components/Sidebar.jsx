@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Menu, X } from "lucide-react";
 
-export default function Sidebar({ setActiveComponent }) {
+export default function Sidebar({ setActiveComponent, setIsSidebarCollapsed }) {
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -30,21 +32,34 @@ export default function Sidebar({ setActiveComponent }) {
   };
 
   return (
-    <div className="fixed top-0 left-0 h-full w-64 bg-blue-800 text-white p-5 flex flex-col z-50">
-      <div className="flex justify-center mb-6">
-        <img
-          src="/BITS_logo.png"
-          alt="BITS Logo"
-          className="w-20 h-20 rounded-full"
-        />
-      </div>
+    <div
+      className={`fixed top-0 left-0 h-full ${
+        isCollapsed ? "w-20" : "w-64"
+      } bg-gradient-to-b from-blue-900 to-blue-800 text-white p-5 flex flex-col z-50 shadow-lg transition-all duration-300`}
+    >
+      <button
+        className="text-white mb-4"
+        onClick={() => { setIsCollapsed(!isCollapsed); setIsSidebarCollapsed(!isCollapsed); }}
+      >
+        {isCollapsed ? <Menu size={28} /> : <X size={28} />}
+      </button>
+
+      {!isCollapsed && (
+        <div className="flex justify-center mb-6">
+          <img
+            src="/BITS_logo.png"
+            alt="BITS Logo"
+            className="w-24 h-24 rounded-full shadow-md border-4 border-white"
+          />
+        </div>
+      )}
 
       <nav className="flex-1">
         <ul className="text-lg">
           <li>
             <button
               onClick={() => setActiveComponent("home")}
-              className="block py-3 px-5 hover:bg-blue-700 w-full text-left"
+              className={`block py-3 px-5 hover:bg-blue-700 transition-all duration-300 w-full text-left rounded-lg ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
               Dashboard
             </button>
@@ -52,7 +67,7 @@ export default function Sidebar({ setActiveComponent }) {
           <li>
             <button
               onClick={() => setActiveComponent("students")}
-              className="block py-3 px-5 hover:bg-blue-700 w-full text-left"
+              className={`block py-3 px-5 hover:bg-blue-700 transition-all duration-300 w-full text-left rounded-lg ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
               Student Details
             </button>
@@ -60,7 +75,7 @@ export default function Sidebar({ setActiveComponent }) {
           <li>
             <button
               onClick={() => setActiveComponent("iterations")}
-              className="block py-3 px-5 hover:bg-blue-700 w-full text-left"
+              className={`block py-3 px-5 hover:bg-blue-700 transition-all duration-300 w-full text-left rounded-lg ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
               Iteration Details
             </button>
@@ -68,7 +83,7 @@ export default function Sidebar({ setActiveComponent }) {
           <li>
             <button
               onClick={() => setActiveComponent("fees")}
-              className="block py-3 px-5 hover:bg-blue-700 w-full text-left"
+              className={`block py-3 px-5 hover:bg-blue-700 transition-all duration-300 w-full text-left rounded-lg ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
               Fee Details
             </button>
@@ -76,16 +91,18 @@ export default function Sidebar({ setActiveComponent }) {
         </ul>
       </nav>
 
-      {user && (
+      {user && !isCollapsed && (
         <div
-          className="relative mt-auto p-4 cursor-pointer"
+          className="relative mt-auto p-4 cursor-pointer border-t border-blue-700"
           onClick={() => setShowDropdown(!showDropdown)}
         >
-          <div className="text-lg font-bold text-center">{user.name}</div>
+          <div className="text-lg font-bold text-center hover:text-blue-400 transition duration-300">
+            {user.name}
+          </div>
           {showDropdown && (
-            <div className="absolute left-4 bottom-12 w-48 bg-white text-black rounded shadow-lg">
+            <div className="absolute left-4 bottom-12 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden">
               <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-200"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 transition duration-300"
                 onClick={handleLogout}
               >
                 Logout
