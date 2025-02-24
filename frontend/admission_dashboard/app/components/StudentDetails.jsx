@@ -127,7 +127,14 @@ export default function StudentDetails() {
 						</thead>
 						<tbody>
 							{students.map((student, index) => (
-								<tr key={`${student.app_no}-${student.itr_no || index}`}>
+								<tr
+								key={`${student.app_no}-${student.itr_no || index}`}
+								className={
+									index % 2 === 0
+										? 'bg-white hover:bg-blue-100'
+										: 'bg-blue-50 hover:bg-blue-100'
+								}
+							>
 									<td className='border border-gray-300 p-2'>
 										{student.app_no}
 									</td>
@@ -144,6 +151,8 @@ export default function StudentDetails() {
 									<td className='border border-gray-300 p-2'>
 										{student.status}
 									</td>
+
+									
 									<td className='border border-gray-300 p-2 text-center'>
 										{student.itr_no === latestIteration && (
 											<button

@@ -131,7 +131,12 @@ export default function IterationDetails() {
 						</thead>
 						<tbody>
 							{iterations.map((iteration, index) => (
-								<tr key={index}>
+								<tr key={index}
+								className={
+									index % 2 === 0
+										? 'bg-white hover:bg-blue-100'
+										: 'bg-blue-50 hover:bg-blue-100'
+								}>
 									<td className='border border-gray-300 p-2'>
 										{iteration.app_no}
 									</td>
